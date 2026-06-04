@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Subtitle Translator",
+  "version": "2.1",
+  "description": "Перевод субтитров — наводи на слова для перевода",
+  "permissions": [],
+  "host_permissions": [
+    "<all_urls>",
+    "https://translate.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

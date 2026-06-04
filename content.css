@@ -1,0 +1,95 @@
+/* ════════════════════════════════════════════════════════
+   Subtitle Translator — styles
+   ════════════════════════════════════════════════════════ */
+
+/* ─── Bottom translation bar ──────────────────────────── */
+#st-bar {
+  position: fixed;
+  /* left / width / top выставляются через JS */
+  z-index: 2147483640;
+  background: rgba(14, 14, 18, 0.96);
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  /* font-family/weight подхватываются из субтитров через JS */
+}
+
+#st-bar-inner {
+  flex: 1;
+  font-size: 19px;
+  line-height: 1.6;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  pointer-events: auto;
+  text-align: center;
+}
+
+/* ─── Hoverable words ─────────────────────────────────── */
+.st-word {
+  cursor: help;
+  border-radius: 3px;
+  padding: 0 2px;
+  transition: background 0.1s;
+}
+
+.st-word:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* ─── Word tooltip ────────────────────────────────────── */
+#st-word-tip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  background: rgba(12, 12, 12, 0.95);
+  border-radius: 7px;
+  padding: 7px 14px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+#st-word-tip:not([data-visible]) {
+  display: none;
+}
+
+/* Перевод слова — слева */
+.wt-word {
+  font-weight: 600;
+  font-size: 16px;
+  color: #fff;
+}
+
+/* Разделитель между словом и выражением */
+.wt-sep {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,0.2);
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+
+/* Устойчивое выражение — справа */
+.wt-phrase {
+  color: #ffd04a;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+/* ─── JW Player: разрешаем hover на субтитрах ─────────── */
+.jw-captions,
+.jw-captions-window,
+.jw-captions-text,
+.jw-text-track-cue,
+.jw-caption-frame {
+  pointer-events: auto !important;
+}
