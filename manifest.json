@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Subtitle Translator",
   "version": "2.1",
-  "description": "Перевод субтитров — наводи на слова для перевода",
+  "description": "Переводит субтитры JW Player на русский. Наведи на слово субтитра — увидишь русский перевод; на слово в баре — английский оригинал.",
   "permissions": [],
   "host_permissions": [
     "<all_urls>",
