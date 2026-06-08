@@ -98,6 +98,15 @@ function handleCaptionLeave() {
   hideWordTip();
 }
 
+function handleCaptionClick(e) {
+  // Пробрасываем клик сквозь caption к плееру под ним
+  // (наш CSS ставит pointer-events:auto!important, поэтому нужно !important для сброса)
+  activeCaptionEl.style.setProperty('pointer-events', 'none', 'important');
+  const below = document.elementFromPoint(e.clientX, e.clientY);
+  activeCaptionEl.style.removeProperty('pointer-events');
+  if (below && below !== activeCaptionEl) below.click();
+}
+
 let mx = 0, my = 0;
 document.addEventListener('mousemove', e => {
   mx = e.clientX; my = e.clientY;
@@ -246,10 +255,12 @@ function watchCaptions(capEl) {
   if (activeCaptionEl && activeCaptionEl !== capEl) {
     activeCaptionEl.removeEventListener('mousemove', handleCaptionMove);
     activeCaptionEl.removeEventListener('mouseleave', handleCaptionLeave);
+    activeCaptionEl.removeEventListener('click', handleCaptionClick);
   }
   activeCaptionEl = capEl;
   capEl.addEventListener('mousemove', handleCaptionMove);
   capEl.addEventListener('mouseleave', handleCaptionLeave);
+  capEl.addEventListener('click', handleCaptionClick);
 
   matchSubtitleFont(capEl);
 
