@@ -1,15 +1,15 @@
 # Subtitle Translator
 
-Chrome/Firefox extension — translates JW Player subtitles to Russian in real time.
+Chrome extension — translates JW Player subtitles to Russian in real time.
 
 ## Features
 
 - **Always-visible translation bar** directly below the video player
-- **Hover any word** → tooltip shows the English original
+- **Hover original subtitle word** → tooltip shows Russian translation
+- **Hover bar word** → tooltip shows English back-translation
 - **Idiom detection** — if a multi-word expression exists, it appears on the right side of the tooltip
 - **Multi-video support** — tracks the last played video on pages with multiple players
-- **Smooth scrolling** — the bar follows the player via `requestAnimationFrame`
-- **Caching** — each unique subtitle line and word is translated only once per session
+- **Smooth positioning** — the bar follows the player via `requestAnimationFrame`
 
 ## Installation (Chrome)
 
@@ -23,7 +23,7 @@ Chrome/Firefox extension — translates JW Player subtitles to Russian in real t
 | File | Role |
 |---|---|
 | `manifest.json` | MV3 config — no special permissions needed |
-| `background.js` | Service worker — proxies Google Translate requests (bypasses CORS), caches results |
+| `background.js` | Service worker — proxies Google Translate requests (bypasses CORS) |
 | `content.js` | Injected into every page — detects JW Player, watches subtitle DOM, renders translation bar |
 | `content.css` | Styles for the bar, word spans and word tooltip |
 
@@ -31,8 +31,13 @@ Chrome/Firefox extension — translates JW Player subtitles to Russian in real t
 
 Uses the unofficial Google Translate endpoint (`translate.googleapis.com`) — no API key required.
 
-- Subtitle → Russian: `sl=auto&tl=ru&dt=t`
-- Word hover (reverse): `sl=ru&tl=en&dt=t&dt=bd` — also returns dictionary phrases for idiom detection
+| Direction | Parameters |
+|---|---|
+| Subtitle → Russian (bar) | `sl=auto&tl=ru&dt=t` |
+| Original subtitle word hover → Russian | `sl=<detected>&tl=ru&dt=t&dt=bd` |
+| Bar word hover → English | `sl=ru&tl=en&dt=t&dt=bd` |
+
+`dt=bd` enables idiom/phrase lookup on hover.
 
 ## Supported subtitle selectors
 
