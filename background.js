@@ -16,15 +16,15 @@ async function translateSentence(text) {
   return result;
 }
 
-async function translateWord(word) {
-  const key = 'w|' + word.toLowerCase();
+async function translateWord(word, sl = 'ru', tl = 'en') {
+  const key = `w|${sl}|${tl}|${word.toLowerCase()}`;
   if (cache.has(key)) return cache.get(key);
 
   // dt=t  → перевод слова
   // dt=bd → словарные статьи (там бывают устойчивые выражения)
   const url =
     'https://translate.googleapis.com/translate_a/single' +
-    `?client=gtx&sl=ru&tl=en&dt=t&dt=bd&q=${encodeURIComponent(word)}`;
+    `?client=gtx&sl=${sl}&tl=${tl}&dt=t&dt=bd&q=${encodeURIComponent(word)}`;
   const data = await fetch(url).then(r => r.json());
 
   // Основной перевод слова
@@ -47,7 +47,7 @@ async function translateWord(word) {
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const handle = async () => {
     if (msg.type === 'translate')     return translateSentence(msg.text);
-    if (msg.type === 'translateWord') return translateWord(msg.word);
+    if (msg.type === 'translateWord') return translateWord(msg.word, msg.sl, msg.tl);
     return {};
   };
   handle().then(sendResponse).catch(() => sendResponse({}));

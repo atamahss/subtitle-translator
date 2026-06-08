@@ -20,6 +20,12 @@ let subWatcher     = null;
 let currentText    = '';
 let translateTimer = null;
 let posRafId       = null;
+let detectedLang   = 'auto';
+
+// Caption word hover
+let capHoverWord    = '';
+let capHoverTimer   = null;
+let activeCaptionEl = null;
 
 // ─── Bottom Bar ───────────────────────────────────────────────────────────────
 const bar = document.createElement('div');
@@ -40,6 +46,57 @@ wordTip.id = 'st-word-tip';
 const appendTip = () => (document.body || document.documentElement).appendChild(wordTip);
 if (document.body) appendTip();
 else document.addEventListener('DOMContentLoaded', appendTip);
+
+// ─── Word under cursor (для ховера на субтитрах) ─────────────────────────────
+function getWordAtPoint(x, y) {
+  let node = null, offset = 0;
+
+  if (document.caretRangeFromPoint) {
+    const r = document.caretRangeFromPoint(x, y);
+    if (!r) return null;
+    node = r.startContainer; offset = r.startOffset;
+  } else if (document.caretPositionFromPoint) {
+    const p = document.caretPositionFromPoint(x, y);
+    if (!p) return null;
+    node = p.offsetNode; offset = p.offset;
+  }
+
+  if (!node || node.nodeType !== Node.TEXT_NODE) return null;
+  if (bar.contains(node)) return null; // у бара свой ховер
+
+  const text = node.textContent;
+  let s = offset, e = offset;
+  while (s > 0 && /\p{L}/u.test(text[s - 1])) s--;
+  while (e < text.length && /\p{L}/u.test(text[e])) e++;
+
+  const word = text.slice(s, e);
+  return word.length >= 2 ? word : null;
+}
+
+// ─── Обработчики ховера на caption-элементе ──────────────────────────────────
+function handleCaptionMove(e) {
+  clearTimeout(capHoverTimer);
+  capHoverTimer = setTimeout(() => {
+    const word = getWordAtPoint(e.clientX, e.clientY);
+    if (!word) {
+      if (capHoverWord) { capHoverWord = ''; hideWordTip(); }
+      return;
+    }
+    if (word === capHoverWord) return;
+    capHoverWord = word;
+    // Перевод слова из оригинальных субтитров → русский
+    safeSend({ type: 'translateWord', word, sl: detectedLang || 'auto', tl: 'ru' }, res => {
+      if (!res?.translation) return;
+      showWordTip(res.translation, res.phrases || []);
+    });
+  }, 100);
+}
+
+function handleCaptionLeave() {
+  clearTimeout(capHoverTimer);
+  capHoverWord = '';
+  hideWordTip();
+}
 
 let mx = 0, my = 0;
 document.addEventListener('mousemove', e => {
@@ -100,11 +157,12 @@ function renderBar(chunks) {
       span.className = 'st-word';
       span.textContent = token;
 
-      // На ховер — запрашиваем перевод слова + фразы
+      // На ховер — перевод слова из бара (русский) → английский
       span.addEventListener('mouseenter', () => {
         const clean = token.replace(/[^\p{L}\p{N}'\-]/gu, '');
         if (!clean) return;
-        safeSend({ type: 'translateWord', word: clean }, res => {
+        capHoverWord = ''; // сбрасываем caption-hover при входе в бар
+        safeSend({ type: 'translateWord', word: clean, sl: 'ru', tl: 'en' }, res => {
           if (!res?.translation) return;
           showWordTip(res.translation, res.phrases || []);
         });
@@ -131,7 +189,10 @@ function translateAndRender(text) {
   clearTimeout(translateTimer);
   translateTimer = setTimeout(() => {
     safeSend({ type: 'translate', text }, res => {
-      if (res?.chunks?.length) renderBar(res.chunks);
+      if (res?.chunks?.length) {
+        if (res.detectedLang) detectedLang = res.detectedLang;
+        renderBar(res.chunks);
+      }
     });
   }, 80);
 }
@@ -180,6 +241,15 @@ function matchSubtitleFont(capEl) {
 
 function watchCaptions(capEl) {
   if (subWatcher) subWatcher.disconnect();
+
+  // Снять слушатели со старого элемента (JW пересоздаёт их при каждом субтитре)
+  if (activeCaptionEl && activeCaptionEl !== capEl) {
+    activeCaptionEl.removeEventListener('mousemove', handleCaptionMove);
+    activeCaptionEl.removeEventListener('mouseleave', handleCaptionLeave);
+  }
+  activeCaptionEl = capEl;
+  capEl.addEventListener('mousemove', handleCaptionMove);
+  capEl.addEventListener('mouseleave', handleCaptionLeave);
 
   matchSubtitleFont(capEl);
 
